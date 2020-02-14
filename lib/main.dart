@@ -27,6 +27,38 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    return _buildFinish();
+  }
+
+  Widget _buildFinish() {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Container(
+        margin: EdgeInsets.only(top:40, left: 20, bottom: 30, right: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+          Container(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            Text('GRACIAS POR VIAJAR CON UTERRA', style: TextStyle(fontSize: 10, color: Color(0xFF735C59), letterSpacing: 1.04)),
+            Text('Ya llegamos. Hola de nuevo.', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w300, color: Color(0xFFC54B3D), letterSpacing: 1.02)),
+          ])),
+
+          Row(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.end, children: [
+            Expanded(child: _buildItem('assets/eye.png', 'Ayudate', 'Tomate unos minutos\nantes de salir al mundo;\nacabas de renacer.')),
+            Expanded(child: _buildItem('assets/share.png', 'Compartí', 'Invita a tus amiges a que\nexperimenten Uterra por\nsí mismes.')),
+            Expanded(child: _buildItem('assets/thanks.png', 'Ayudanos', 'Al salir, por favor dejá\ntodo igual o mejor que\ncomo estaba antes.')),
+          ]),
+
+          _buildButton2(),
+        ]),
+      )
+    );
+  }
+
+  Widget _buildPlayer() {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Container(
@@ -138,6 +170,17 @@ class _MyHomePageState extends State<MyHomePage> {
       borderSide: BorderSide(color: Color(0xFFC54B3D), style: BorderStyle.solid, width: 1),
       label: Text('COMENZAR VIAJE', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
       icon: Image(image: AssetImage('assets/next.png'), width: 5),
+    );
+  }
+
+  Widget _buildButton2() {
+    return OutlineButton.icon(
+      onPressed: () {  },
+      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      borderSide: BorderSide(color: Color(0xFFC54B3D), style: BorderStyle.solid, width: 1),
+      label: Text('VOLVER AL INICIO', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+      icon: Image(image: AssetImage('assets/back.png'), width: 5),
     );
   }
 
