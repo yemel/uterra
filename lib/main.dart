@@ -30,6 +30,69 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Container(
+        margin: EdgeInsets.only(top:40, left: 20, right: 20),
+        child: Stack(
+          children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+
+            // Go Back
+            OutlineButton.icon(
+              onPressed: () {},
+              padding: EdgeInsets.all(15),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              borderSide: BorderSide(color: Color(0xFFC54B3D), style: BorderStyle.solid, width: 1),
+              icon: Image(image: AssetImage('assets/back.png'), width: 5),
+              label: Text('SALIR', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+            ),
+
+            // Volume Controls
+            Container(
+              decoration: BoxDecoration(border: Border.all(color: Color(0xFFBCA4A1)), borderRadius: BorderRadius.circular(30)),
+              padding: EdgeInsets.all(15),
+              child: Row(children: [
+              
+              // Volume Down
+              SizedBox(height: 5, child: IconButton(
+                  padding: new EdgeInsets.all(0),
+                  icon: Image(width: 10, image: AssetImage('assets/minus.png')),
+                  onPressed: () {}
+              )),
+
+              Text('VOLUMEN'),
+
+              // Volume UP
+              SizedBox(height: 10, child: IconButton(
+                  padding: new EdgeInsets.all(0),
+                  icon: Image(image: AssetImage('assets/plus.png')),
+                  onPressed: () {}
+              )),
+            ]))
+            // Text('VOLUMEN', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w300, color: Color(0xFFC54B3D), letterSpacing: 1.02)),
+          ]),
+
+          // Center Cirlce
+          Center(child: Container(width: 150, height: 150, decoration: BoxDecoration(
+            border: Border.all(color: Color(0xFFC54B3D), width: 2), shape: BoxShape.circle
+          ))),
+          
+          // Pause Button
+          Center(child: Image(image: AssetImage('assets/pause.png'), width: 30)),
+
+          // Play Button
+          // Center(child: Container(margin: EdgeInsets.only(left: 12), child: Image(image: AssetImage('assets/play.png'), width: 40))),
+
+          Positioned(bottom: 10, child: Text('0:00')),
+          Positioned(bottom: 10, right: 0, child: Text('9:59')),
+          Positioned(bottom: 1, child: Container(color: Colors.red, height: 2, width: 500)),
+        ]),
+      )
+    );
+  }
+
+  Widget _buildHome() {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Container(
         margin: EdgeInsets.only(top:40, left: 20, bottom: 30, right: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
