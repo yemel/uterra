@@ -25,9 +25,15 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  int _screen = 0;
+
   @override
   Widget build(BuildContext context) {
-    return _buildFinish();
+    return Stack(children: [
+    AnimatedOpacity(opacity: _screen == 2 ? 1 : 0, duration: Duration(seconds: 1), child: IgnorePointer(child: _buildFinish(), ignoring: _screen != 2)),
+    AnimatedOpacity(opacity: _screen == 1 ? 1 : 0, duration: Duration(seconds: 1), child: IgnorePointer(child: _buildPlayer(), ignoring: _screen != 1)),
+    AnimatedOpacity(opacity: _screen == 0 ? 1 : 0, duration: Duration(seconds: 1), child: IgnorePointer(child: _buildHome(), ignoring: _screen != 0)),
+    ]);
   }
 
   Widget _buildFinish() {
@@ -69,7 +75,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
             // Go Back
             OutlineButton.icon(
-              onPressed: () {},
+              onPressed: () => setState(() {
+                _screen = 0;
+              }),
               padding: EdgeInsets.all(15),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               borderSide: BorderSide(color: Color(0xFFC54B3D), style: BorderStyle.solid, width: 1),
@@ -164,7 +172,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildButton() {
     return OutlineButtonWithIcon(
-      onPressed: () {  },
+      onPressed: () => setState(() {
+        _screen = 1;
+      }),
       padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       borderSide: BorderSide(color: Color(0xFFC54B3D), style: BorderStyle.solid, width: 1),
