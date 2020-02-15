@@ -29,7 +29,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   int _screen = 0;
 
+
   bool playing = false;
+  double currentVol = 1;
   AudioCache player = AudioCache();
 
   AudioPlayer audio;
@@ -40,6 +42,16 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     player.load('meditation.mpeg');
+  }
+
+  volumeUp() async {
+    currentVol = min(1.0, currentVol + 0.15);
+    if(audio != null) audio.setVolume(currentVol);
+  }
+
+  volumeDown() async {
+    currentVol = max(0, currentVol - 0.15);
+    if(audio != null) audio.setVolume(currentVol);
   }
 
   @override
@@ -111,7 +123,7 @@ class _MyHomePageState extends State<MyHomePage> {
               SizedBox(height: 5, child: IconButton(
                   padding: new EdgeInsets.all(0),
                   icon: Image(width: 10, image: AssetImage('assets/minus.png')),
-                  onPressed: () {}
+                  onPressed: () => volumeDown()
               )),
 
               Text('VOLUMEN'),
@@ -120,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
               SizedBox(height: 10, child: IconButton(
                   padding: new EdgeInsets.all(0),
                   icon: Image(image: AssetImage('assets/plus.png')),
-                  onPressed: () {}
+                  onPressed: () => volumeUp()
               )),
             ]))
             // Text('VOLUMEN', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w300, color: Color(0xFFC54B3D), letterSpacing: 1.02)),
@@ -223,7 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildPosition() {
-    if (audioDuration == null) return Text('');
+    if (audioPosition == null) return Text('');
     return Text('${audioPosition.inMinutes}:${audioPosition.inSeconds % 60}');
   }
 
