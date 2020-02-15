@@ -1,6 +1,8 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uterra/button_with_icon.dart';
+import 'package:audioplayers/audio_cache.dart';
 
 void main() {
   runApp(MyApp());
@@ -26,6 +28,19 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   int _screen = 0;
+
+  bool playing = false;
+  AudioCache player = AudioCache();
+
+  AudioPlayer audio;
+  Duration audioDuration;
+  Duration audioPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    player.load('meditation.mpeg');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
             OutlineButton.icon(
               onPressed: () => setState(() {
                 _screen = 0;
+                stopMeditation();
               }),
               padding: EdgeInsets.all(15),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -111,19 +127,25 @@ class _MyHomePageState extends State<MyHomePage> {
           ]),
 
           // Center Cirlce
-          Center(child: Container(width: 150, height: 150, decoration: BoxDecoration(
+          Center(child: GestureDetector(
+            onTap: () => setState(() => playing ? pauseMeditation() : resumeMeditation()),
+            child: Container(width: 150, height: 150, decoration: BoxDecoration(
             border: Border.all(color: Color(0xFFC54B3D), width: 2), shape: BoxShape.circle
-          ))),
+          )))),
           
           // Pause Button
-          Center(child: Image(image: AssetImage('assets/pause.png'), width: 30)),
+          AnimatedOpacity(opacity: playing ? 1 : 0, duration: Duration(milliseconds: 500), child:
+              Center(child: Image(image: AssetImage('assets/pause.png'), width: 30))
+          ),
 
           // Play Button
-          // Center(child: Container(margin: EdgeInsets.only(left: 12), child: Image(image: AssetImage('assets/play.png'), width: 40))),
+          AnimatedOpacity(opacity: playing ? 0 : 1, duration: Duration(milliseconds: 500), child:
+            Center(child: Container(margin: EdgeInsets.only(left: 12), child: Image(image: AssetImage('assets/play.png'), width: 40))),
+          ),
 
-          Positioned(bottom: 10, child: Text('0:00')),
-          Positioned(bottom: 10, right: 0, child: Text('9:59')),
-          Positioned(bottom: 1, child: Container(color: Colors.red, height: 2, width: 500)),
+          Positioned(bottom: 10, child: _buildPosition()),
+          Positioned(bottom: 10, right: 0, child: _buildDuration()),
+          Positioned(bottom: 1, child: AnimatedContainer(color: Color(0xFFC54B3D), height: 2, width: _getProgress(), duration: Duration(seconds: 1))),
         ]),
       )
     );
@@ -174,6 +196,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return OutlineButtonWithIcon(
       onPressed: () => setState(() {
         _screen = 1;
+        startMeditation();
       }),
       padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -194,5 +217,49 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Widget _buildDuration() {
+    if (audioDuration == null) return Text('');
+    return Text('${audioDuration.inMinutes}:${audioDuration.inSeconds % 60}');
+  }
 
+  Widget _buildPosition() {
+    if (audioDuration == null) return Text('');
+    return Text('${audioPosition.inMinutes}:${audioPosition.inSeconds % 60}');
+  }
+
+  double _getProgress() {
+    if(audioPosition == null || audioDuration == null) return 0;
+    var progress = audioPosition.inSeconds / audioDuration.inSeconds;
+    return MediaQuery.of(context).size.width * progress;
+  }
+
+  void startMeditation() async {
+    playing = true;
+    audio = await player.play('meditation.mpeg', stayAwake: true);
+
+    audio.onDurationChanged.listen((Duration d) {
+      if(audioDuration != null) return;
+      setState(() => audioDuration = d);
+    });
+
+    audio.onAudioPositionChanged.listen((Duration d) {
+      if (audioPosition != null && audioPosition.inSeconds == d.inSeconds) return;
+      setState(() => audioPosition = d);
+    });
+  }
+
+  void stopMeditation() {
+    playing = false;
+    audio.stop();
+  }
+
+  void pauseMeditation() {
+    playing = false;
+    audio.pause();
+  }
+
+  void resumeMeditation() {
+    playing = true;
+    audio.resume();
+  }
 }
