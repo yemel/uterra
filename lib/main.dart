@@ -144,23 +144,35 @@ class _MyHomePageState extends State<MyHomePage> {
           // Center Cirlce
           Center(child: GestureDetector(
             onTap: () => setState(() => playing ? pauseMeditation() : resumeMeditation()),
-            child: Container(width: 150, height: 150, decoration: BoxDecoration(
-            border: Border.all(color: Color(0xFFC54B3D), width: 2), shape: BoxShape.circle
+            child: Container(
+              width: 150, height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: Color(0xFFC54B3D), blurRadius: 0),
+                  BoxShadow(color: Colors.black, blurRadius: 10),
+                ],
+                border: Border.all(color: Color(0xFFC54B3D), width: 2),
           )))),
           
           // Pause Button
           AnimatedOpacity(opacity: playing ? 1 : 0, duration: Duration(milliseconds: 500), child:
-              Center(child: Image(image: AssetImage('assets/pause.png'), width: 30))
+              IgnorePointer(child: Center(child: Image(image: AssetImage('assets/pause.png'), width: 30)))
           ),
 
           // Play Button
           AnimatedOpacity(opacity: playing ? 0 : 1, duration: Duration(milliseconds: 500), child:
-            Center(child: Container(margin: EdgeInsets.only(left: 12), child: Image(image: AssetImage('assets/play.png'), width: 40))),
+            IgnorePointer(child: Center(child: Container(margin: EdgeInsets.only(left: 12), child: Image(image: AssetImage('assets/play.png'), width: 40)))),
           ),
 
           Positioned(bottom: 10, child: _buildPosition()),
           Positioned(bottom: 10, right: 0, child: _buildDuration()),
           Positioned(bottom: 1, child: AnimatedContainer(color: Color(0xFFC54B3D), height: 2, width: _getProgress(), duration: Duration(seconds: 1))),
+
+          Positioned(bottom: 50, right: 10, child: GestureDetector(
+            onTap: () => _handleSkip(),
+            child: Container(width: 220, height: 220, color: Colors.black))
+          ),
         ]),
       )
     );
@@ -208,6 +220,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
   Widget _buildButton() {
+    // return RaisedGradientButton(child: Text('hola'), gradient: LinearGradient(
+    //   colors: <Color>[Color(0xFFC54B3D), Colors.black],
+    //   stops: [0.2, 0.2],
+    // ));
+
     return OutlineButtonWithIcon(
       onPressed: () => setState(() {
         _screen = 1;
@@ -223,7 +240,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildButton2() {
     return OutlineButton.icon(
-      onPressed: () {  },
+      onPressed: () => setState(() => _screen = 0),
       padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       borderSide: BorderSide(color: Color(0xFFC54B3D), style: BorderStyle.solid, width: 1),
@@ -259,7 +276,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
     audio.onAudioPositionChanged.listen((Duration d) {
       if (audioPosition != null && audioPosition.inSeconds == d.inSeconds) return;
-      setState(() => audioPosition = d);
+      setState(() {
+        audioPosition = d;
+        print('Update: ${_screen}');
+        if (_screen == 1 && d.inMinutes >= 9 && d.inSeconds % 60 >= 9) {
+          _screen = 2;
+        }
+      });
     });
   }
 
@@ -276,5 +299,48 @@ class _MyHomePageState extends State<MyHomePage> {
   void resumeMeditation() {
     playing = true;
     audio.resume();
+  }
+
+  int _tapCount = 0;
+  int _lastTap = 0;
+  void _handleSkip() {
+    int now = DateTime.now().millisecondsSinceEpoch;
+    _tapCount = now - _lastTap < 1500 ? _tapCount + 1 : 1;
+    _lastTap = now;
+    if(_tapCount == 5) audio.seek(Duration(minutes: 9));
+  }
+}
+
+class RaisedGradientButton extends StatelessWidget {
+  final Widget child;
+  final Gradient gradient;
+  final double width;
+  final double height;
+  final Function onPressed;
+
+  const RaisedGradientButton({
+    Key key,
+    @required this.child,
+    this.gradient,
+    this.width = double.infinity,
+    this.height = 50.0,
+    this.onPressed,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: 50.0,
+      decoration: BoxDecoration(gradient: gradient),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+            onTap: onPressed,
+            child: Center(
+              child: child,
+            )),
+      ),
+    );
   }
 }
