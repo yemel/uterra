@@ -1,11 +1,14 @@
+import 'dart:math';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uterra/button_with_icon.dart';
 import 'package:audioplayers/audio_cache.dart';
 
-void main() {
+void main() async {
   runApp(MyApp());
+  SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
   SystemChrome.setEnabledSystemUIOverlays([]);
 }
 
