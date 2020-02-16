@@ -28,10 +28,9 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
 
   int _screen = 0;
-
 
   bool playing = false;
   double currentVol = 1;
@@ -41,10 +40,22 @@ class _MyHomePageState extends State<MyHomePage> {
   Duration audioDuration;
   Duration audioPosition;
 
+  AnimationController controller;
+  Animation<double> animation;
+
   @override
   void initState() {
     super.initState();
     player.load('meditation.mpeg');
+
+    controller = AnimationController(duration: Duration(seconds: 90), vsync: this);
+    animation = Tween<double>(begin: 0, end: 1).animate(controller);
+    animation.addListener(() => setState((){
+      if(animation.value > 0.99 && _screen == 2) {
+        _screen = 0;
+        controller.reset();
+      }
+    }));
   }
 
   volumeUp() async {
@@ -101,8 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
         margin: EdgeInsets.only(top:40, left: 20, right: 20),
         child: Stack(
           children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-
+          Opacity(opacity: 0.5, child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             // Go Back
             OutlineButton.icon(
               onPressed: () => setState(() {
@@ -112,6 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: EdgeInsets.all(15),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               borderSide: BorderSide(color: Color(0xFFC54B3D), style: BorderStyle.solid, width: 1),
+              highlightedBorderColor: Color(0xFF6D1716),
               icon: Image(image: AssetImage('assets/back.png'), width: 5),
               label: Text('SALIR', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
             ),
@@ -119,27 +130,39 @@ class _MyHomePageState extends State<MyHomePage> {
             // Volume Controls
             Container(
               decoration: BoxDecoration(border: Border.all(color: Color(0xFFBCA4A1)), borderRadius: BorderRadius.circular(30)),
-              padding: EdgeInsets.all(15),
+              padding: EdgeInsets.only(top: 4, right: 4, bottom: 4),
               child: Row(children: [
               
               // Volume Down
-              SizedBox(height: 5, child: IconButton(
-                  padding: new EdgeInsets.all(0),
-                  icon: Image(width: 10, image: AssetImage('assets/minus.png')),
-                  onPressed: () => volumeDown()
+              GestureDetector(
+                onTap: () => volumeDown(),
+                child: Container(
+                  padding: EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Color(0xFFC54B3D), width: 2),  
+                  ),
+                  child: Image(image: AssetImage('assets/minus.png'), width: 12)
               )),
 
+              SizedBox(width: 18),
               Text('VOLUMEN'),
+              SizedBox(width: 18),
 
               // Volume UP
-              SizedBox(height: 10, child: IconButton(
-                  padding: new EdgeInsets.all(0),
-                  icon: Image(image: AssetImage('assets/plus.png')),
-                  onPressed: () => volumeUp()
+              GestureDetector(
+                onTap: () => volumeUp(),
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Color(0xFFC54B3D), width: 2),  
+                  ),
+                  child: Image(image: AssetImage('assets/plus.png'), width: 10)
               )),
+
             ]))
-            // Text('VOLUMEN', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w300, color: Color(0xFFC54B3D), letterSpacing: 1.02)),
-          ]),
+          ])),
 
           // Center Cirlce
           Center(child: GestureDetector(
@@ -165,8 +188,24 @@ class _MyHomePageState extends State<MyHomePage> {
             IgnorePointer(child: Center(child: Container(margin: EdgeInsets.only(left: 12), child: Image(image: AssetImage('assets/play.png'), width: 40)))),
           ),
 
-          Positioned(bottom: 10, child: _buildPosition()),
-          Positioned(bottom: 10, right: 0, child: _buildDuration()),
+          AnimatedOpacity(opacity: playing ? 0 : 1, duration: Duration(milliseconds: 500), child:
+            IgnorePointer(child: Center(child: 
+            Container(
+              margin: EdgeInsets.only(top: 220),
+              child: audioPosition == null ? null : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Sólo faltan ', style: TextStyle(color: Color(0xFF5E5250), fontSize: 16, letterSpacing: 1.04)),
+                  _buildRemaining(),
+              ]),
+          )))),
+
+          Positioned(bottom: 10, child: 
+            AnimatedOpacity(opacity: playing ? 0.7 : 0, duration: Duration(milliseconds: 500), child: _buildPosition())
+          ),
+          Positioned(bottom: 10, right: 0, child:
+            AnimatedOpacity(opacity: playing ? 0.7 : 0, duration: Duration(milliseconds: 500), child: _buildDuration())
+          ),
           Positioned(bottom: 1, child: AnimatedContainer(color: Color(0xFFC54B3D), height: 2, width: _getProgress(), duration: Duration(seconds: 1))),
 
           Positioned(bottom: 50, right: 10, child: GestureDetector(
@@ -220,11 +259,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
   Widget _buildButton() {
-    // return RaisedGradientButton(child: Text('hola'), gradient: LinearGradient(
-    //   colors: <Color>[Color(0xFFC54B3D), Colors.black],
-    //   stops: [0.2, 0.2],
-    // ));
-
     return OutlineButtonWithIcon(
       onPressed: () => setState(() {
         _screen = 1;
@@ -233,20 +267,35 @@ class _MyHomePageState extends State<MyHomePage> {
       padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       borderSide: BorderSide(color: Color(0xFFC54B3D), style: BorderStyle.solid, width: 1),
-      label: Text('COMENZAR VIAJE', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-      icon: Image(image: AssetImage('assets/next.png'), width: 5),
+      highlightedBorderColor: Color(0xFF6D1716),
+      label: Text('COMENZAR VIAJE', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 1.04)),
+      icon: Image(image: AssetImage('assets/next.png'), width: 6),
     );
   }
 
   Widget _buildButton2() {
-    return OutlineButton.icon(
-      onPressed: () => setState(() => _screen = 0),
+    return GestureDetector(
+      onTap: () => setState(() {
+        _screen = 0;
+        controller.reset();
+      }),
+      child: Container(
       padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-      borderSide: BorderSide(color: Color(0xFFC54B3D), style: BorderStyle.solid, width: 1),
-      label: Text('VOLVER AL INICIO', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-      icon: Image(image: AssetImage('assets/back.png'), width: 5),
-    );
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Color(0xFFC54B3D), width: 1),
+        gradient: LinearGradient(
+          colors: <Color>[Color(0x55CE0200), Color(0x55C54B3D), Colors.black],
+          stops: [0, animation.value, animation.value],
+        )
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image(image: AssetImage('assets/back.png'), width: 6),
+          SizedBox(width: 18),
+          Text('VOLVER AL INICIO', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 1.04)),
+    ])));
   }
 
   Widget _buildDuration() {
@@ -257,6 +306,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _buildPosition() {
     if (audioPosition == null) return Text('');
     return Text('${audioPosition.inMinutes}:${audioPosition.inSeconds % 60}');
+  }
+
+  Widget _buildRemaining() {
+    if (audioPosition == null) return Text('');
+    Duration rest = audioDuration - audioPosition;
+    return Text('${rest.inMinutes}:${rest.inSeconds % 60}', style: TextStyle(color: Colors.white, fontSize: 16, letterSpacing: 1.04, fontWeight: FontWeight.w700));
   }
 
   double _getProgress() {
@@ -278,9 +333,10 @@ class _MyHomePageState extends State<MyHomePage> {
       if (audioPosition != null && audioPosition.inSeconds == d.inSeconds) return;
       setState(() {
         audioPosition = d;
-        print('Update: ${_screen}');
         if (_screen == 1 && d.inMinutes >= 9 && d.inSeconds % 60 >= 9) {
           _screen = 2;
+          controller.reset();
+          controller.forward();
         }
       });
     });
@@ -308,39 +364,5 @@ class _MyHomePageState extends State<MyHomePage> {
     _tapCount = now - _lastTap < 1500 ? _tapCount + 1 : 1;
     _lastTap = now;
     if(_tapCount == 5) audio.seek(Duration(minutes: 9));
-  }
-}
-
-class RaisedGradientButton extends StatelessWidget {
-  final Widget child;
-  final Gradient gradient;
-  final double width;
-  final double height;
-  final Function onPressed;
-
-  const RaisedGradientButton({
-    Key key,
-    @required this.child,
-    this.gradient,
-    this.width = double.infinity,
-    this.height = 50.0,
-    this.onPressed,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: 50.0,
-      decoration: BoxDecoration(gradient: gradient),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-            onTap: onPressed,
-            child: Center(
-              child: child,
-            )),
-      ),
-    );
   }
 }
